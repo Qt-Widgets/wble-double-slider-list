@@ -13,17 +13,19 @@ namespace Ui
 class FilterNumbers;
 } // namespace Ui
 
+class QLineEdit;
+
 /**
  * @class FilterNumbers
- * @brief Numbers filter for numeric values.
+ * @brief Base class for numeric filters.
  */
 class WBLE_EXPORT FilterNumbers : public Filter
 {
     Q_OBJECT
 public:
     FilterNumbers(const QString& name,
-                  double min,
-                  double max,
+                  double from,
+                  double to,
                   QWidget* parent = nullptr);
 
     ~FilterNumbers() override;
@@ -37,32 +39,47 @@ public:
 protected:
     void checkedStateChanged(bool checked) override;
 
+    virtual bool isDoubleMode() const = 0;
+
+    virtual void emitChangeSignal() = 0;
+
+    QLineEdit* getFromLineEdit() const;
+
+    QLineEdit* getToLineEdit() const;
+
+    void changeEvent(QEvent* event) override;
+
 private:
+    void initDoubleSlider();
+
+    void initLineEdits();
+
+    void initColorForLineEdits();
+
     Ui::FilterNumbers* ui;
 
-    ///Minimum set on filter creation.
-    double minOnInit_;
+    /// Minimum set on filter creation.
+    double initialFromValue_;
 
-    ///Maximum set on filter creation.
-    double maxOnInit_;
+    /// Maximum set on filter creation.
+    double initialToValue_;
 
-    static constexpr double FACTOR {100.};
+    QColor defaultBackgroundColor_;
 
-    ///Numbers are doubles.
-    bool doubleMode_ {false};
+    QColor altBackgroundColor_;
 
 private Q_SLOTS:
     /**
      * Trigerred on change of left handle on slider.
      * @param newValue new value.
      */
-    void sliderMinChanged(int newValue);
+    void sliderFromChanged(double newValue);
 
     /**
      * Trigerred on change of right handle on slider.
      * @param newValue new value.
      */
-    void sliderMaxChanged(int newValue);
+    void sliderToChanged(double newValue);
 
     /**
      * Trigerred on change of left LineEdit (from).
@@ -74,8 +91,7 @@ private Q_SLOTS:
      */
     void toEditingFinished();
 
-Q_SIGNALS:
-    void newNumericFilter(double from, double to);
+    void lineEditContentModified(const QString& currentContent);
 };
 
 #endif // FILTERNUMBERS_H

@@ -15,7 +15,7 @@ FilterDates::FilterDates(const QString& name,
 {
     ui->setupUi(this);
 
-    connect(ui->emptyDates, &QCheckBox::toggled,
+    connect(ui->ignoreEmptyDates, &QCheckBox::toggled,
             this, [ = ](bool checked)
     {
         Q_EMIT newDateFilter(ui->fromDateEdit->date(),
@@ -29,10 +29,8 @@ FilterDates::FilterDates(const QString& name,
     initFromDateCalendar();
     initToDateCalendar();
 
-    if (!emptyDates_)
-        ui->emptyDates->hide();
-    else
-        ui->emptyDates->show();
+    ui->ignoreEmptyDates->setVisible(emptyDates_);
+    ui->ignoreEmptyDates->setEnabled(emptyDates_);
 }
 
 FilterDates::~FilterDates()
@@ -67,7 +65,7 @@ void FilterDates::fromDateChanged(QDate newDate)
 
     Q_EMIT newDateFilter(ui->fromDateEdit->date(),
                          ui->toDateEdit->date(),
-                         ui->emptyDates->isChecked());
+                         ui->ignoreEmptyDates->isChecked());
 }
 
 void FilterDates::toDateChanged(QDate newDate)
@@ -77,7 +75,7 @@ void FilterDates::toDateChanged(QDate newDate)
 
     Q_EMIT newDateFilter(ui->fromDateEdit->date(),
                          ui->toDateEdit->date(),
-                         ui->emptyDates->isChecked());
+                         ui->ignoreEmptyDates->isChecked());
 }
 
 void FilterDates::checkedStateChanged(bool checked)
@@ -85,7 +83,11 @@ void FilterDates::checkedStateChanged(bool checked)
     QList<QDateEdit*> dateWidgets = findChildren<QDateEdit*>();
 
     for (QWidget* current : dateWidgets)
+    {
         current->setVisible(checked);
+        current->setEnabled(checked);
+    }
 
-    ui->emptyDates->setVisible(checked && emptyDates_);
+    ui->ignoreEmptyDates->setVisible(checked && emptyDates_);
+    ui->ignoreEmptyDates->setEnabled(checked);
 }

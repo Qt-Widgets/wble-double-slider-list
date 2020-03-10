@@ -10,85 +10,23 @@
 #include "Utilities.h"
 
 FilterNumbers::FilterNumbers(const QString& name,
-                             double min,
-                             double max,
+                             double from,
+                             double to,
                              QWidget* parent) :
     Filter(name, parent),
     ui(new Ui::FilterNumbers),
-    minOnInit_(min),
-    maxOnInit_(max)
+    initialFromValue_(from),
+    initialToValue_(to)
 {
     ui->setupUi(this);
 
-    if (maxOnInit_ - minOnInit_ <= 1)
-        doubleMode_ = true;
+    initLineEdits();
 
-    if (!doubleMode_)
-    {
-        if (fmod(minOnInit_, 1) != 0 && minOnInit_ < 0)
-        {
-            minOnInit_ = minOnInit_ - 1;
-        }
+    initDoubleSlider();
 
-        if (fmod(maxOnInit_, 1) != 0 && maxOnInit_ > 0)
-        {
-            maxOnInit_ = maxOnInit_ + 1;
-        }
+    initColorForLineEdits();
 
-        minOnInit_ = static_cast<int>(minOnInit_);
-        maxOnInit_ = static_cast<int>(maxOnInit_);
-    }
-
-    if (doubleMode_)
-    {
-        ui->fromValue->setText(QString::number(minOnInit_, 'f', 2));
-        ui->toValue->setText(QString::number(maxOnInit_, 'f', 2));
-    }
-    else
-    {
-        ui->fromValue->setText(QString::number(minOnInit_));
-        ui->toValue->setText(QString::number(maxOnInit_));
-    }
-
-    DoubleSlider* slider {nullptr};
-
-    if (doubleMode_)
-        slider = new DoubleSlider(static_cast<int>(ui->fromValue->text().toDouble() * FACTOR),
-                                  static_cast<int>(ui->toValue->text().toDouble() * FACTOR),
-                                  this);
-    else
-        slider = new DoubleSlider(static_cast<int>(minOnInit_), static_cast<int>(maxOnInit_), this);
-
-    if (doubleMode_)
-    {
-        ui->fromValue->setValidator(new QDoubleValidator(minOnInit_,
-                                                         maxOnInit_,
-                                                         2,
-                                                         ui->fromValue));
-        ui->toValue->setValidator(new QDoubleValidator(minOnInit_,
-                                                       maxOnInit_,
-                                                       2,
-                                                       ui->toValue));
-    }
-    else
-    {
-        ui->fromValue->setValidator(new QIntValidator(static_cast<int>(minOnInit_),
-                                                      static_cast<int>(maxOnInit_),
-                                                      ui->fromValue));
-        ui->toValue->setValidator(new QIntValidator(static_cast<int>(minOnInit_),
-                                                    static_cast<int>(maxOnInit_),
-                                                    ui->toValue));
-    }
-
-    connect(slider, &DoubleSlider::currentMinChanged, this, &FilterNumbers::sliderMinChanged);
-    connect(slider, &DoubleSlider::currentMaxChanged, this, &FilterNumbers::sliderMaxChanged);
-
-    connect(ui->fromValue, &QLineEdit::editingFinished, this, &FilterNumbers::fromEditingFinished);
-    connect(ui->toValue, &QLineEdit::editingFinished, this, &FilterNumbers::toEditingFinished);
-
-    ui->verticalLayout->addWidget(slider);
-
-    if (Utilities::doublesAreEqual(ui->fromValue->text().toDouble(), ui->toValue->text().toDouble()))
+    if (Utilities::doublesAreEqual(initialFromValue_, initialToValue_))
         setDisabled(true);
 }
 
@@ -97,64 +35,133 @@ FilterNumbers::~FilterNumbers()
     delete ui;
 }
 
-void FilterNumbers::sliderMinChanged(int newValue)
+void FilterNumbers::checkedStateChanged(bool checked)
 {
-    if (doubleMode_)
-        ui->fromValue->setText(QString::number(newValue / FACTOR, 'f', 2));
-    else
-        ui->fromValue->setText(QString::number(newValue));
+    const QList<QWidget*> widgets {findChildren<QWidget*>()};
 
-    QApplication::processEvents();
-
-    //Emit to model via filters dock.
-    Q_EMIT newNumericFilter(ui->fromValue->text().toDouble(),
-                            ui->toValue->text().toDouble());
+    for (QWidget* widget : widgets)
+    {
+        widget->setEnabled(checked);
+        widget->setVisible(checked);
+    }
 }
 
-void FilterNumbers::sliderMaxChanged(int newValue)
+QLineEdit* FilterNumbers::getFromLineEdit() const
 {
-    if (doubleMode_)
-        ui->toValue->setText(QString::number(newValue / FACTOR, 'f', 2));
+    return ui->fromValue;
+}
+
+QLineEdit* FilterNumbers::getToLineEdit() const
+{
+    return ui->toValue;
+}
+
+void FilterNumbers::changeEvent(QEvent* event)
+{
+    Filter::changeEvent(event);
+
+    if (event->type() == QEvent::StyleChange)
+        initColorForLineEdits();
+}
+
+void FilterNumbers::initDoubleSlider()
+{
+    DoubleSlider* slider {new DoubleSlider(initialFromValue_, initialToValue_, this)};
+    connect(slider, &DoubleSlider::currentMinChanged,
+            this, &FilterNumbers::sliderFromChanged);
+    connect(slider, &DoubleSlider::currentMaxChanged,
+            this, &FilterNumbers::sliderToChanged);
+
+    ui->verticalLayout->addWidget(slider);
+}
+
+void FilterNumbers::initLineEdits()
+{
+    connect(ui->fromValue, &QLineEdit::editingFinished,
+            this, &FilterNumbers::fromEditingFinished);
+    connect(ui->toValue, &QLineEdit::editingFinished,
+            this, &FilterNumbers::toEditingFinished);
+
+    connect(ui->fromValue, &QLineEdit::textChanged,
+            this, &FilterNumbers::lineEditContentModified);
+    connect(ui->toValue, &QLineEdit::textChanged,
+            this, &FilterNumbers::lineEditContentModified);
+}
+
+void FilterNumbers::initColorForLineEdits()
+{
+    QPalette defaultPalette {QApplication::palette(ui->fromValue)};
+    defaultBackgroundColor_ = defaultPalette.color(ui->fromValue->backgroundRole());
+    altBackgroundColor_ = defaultPalette.color(QPalette::Highlight);
+}
+
+void FilterNumbers::sliderFromChanged(double newValue)
+{
+    if (isDoubleMode())
+        ui->fromValue->setText(QLocale::system().toString(newValue, 'f', 2));
     else
-        ui->toValue->setText(QString::number(newValue));
+        ui->fromValue->setText(QLocale::system().toString(static_cast<int>(newValue)));
 
-    QApplication::processEvents();
+    emitChangeSignal();
+}
 
-    //Emit to model via filters dock.
-    Q_EMIT newNumericFilter(ui->fromValue->text().toDouble(),
-                            ui->toValue->text().toDouble());
+void FilterNumbers::sliderToChanged(double newValue)
+{
+    if (isDoubleMode())
+        ui->toValue->setText(QLocale::system().toString(newValue, 'f', 2));
+    else
+        ui->toValue->setText(QLocale::system().toString(static_cast<int>(newValue)));
+
+    emitChangeSignal();
 }
 
 void FilterNumbers::fromEditingFinished()
 {
-    auto slider = findChild<DoubleSlider*>();
+    auto slider {findChild<DoubleSlider*>()};
     if (slider == nullptr)
         return;
 
-    QString newMinAsText = ui->fromValue->text();
-    double minToSet {doubleMode_ ?
-                     newMinAsText.toDouble()* FACTOR :
-                     newMinAsText.toInt()};
-    slider->setCurrentMin(minToSet);
+    QString newFromAsText {ui->fromValue->text()};
+    double fromToSet {isDoubleMode() ?
+                      QLocale::system().toDouble(newFromAsText) :
+                      QLocale::system().toInt(newFromAsText)};
+
+    slider->setCurrentMin(fromToSet);
+    emitChangeSignal();
 }
 
 void FilterNumbers::toEditingFinished()
 {
-    auto slider = findChild<DoubleSlider*>();
+    auto slider {findChild<DoubleSlider*>()};
     if (slider == nullptr)
         return;
 
-    QString newMaxAsText = ui->toValue->text();
-    double maxToSet {doubleMode_ ?
-                     newMaxAsText.toDouble()* FACTOR :
-                     newMaxAsText.toInt()};
-    slider->setCurrentMax(maxToSet);
+    QString newToAsText = ui->toValue->text();
+    double toToSet {isDoubleMode() ?
+                    QLocale::system().toDouble(newToAsText) :
+                    QLocale::system().toInt(newToAsText)};
+
+    slider->setCurrentMax(toToSet);
+    emitChangeSignal();
 }
 
-void FilterNumbers::checkedStateChanged(bool checked)
+void FilterNumbers::lineEditContentModified(const QString& currentContent)
 {
-    QList<QWidget*> widgets = findChildren<QWidget*>();
+    auto lineEdit = dynamic_cast<QLineEdit*>(sender());
+    const double currentValue = QLocale::system().toDouble(currentContent);
+    QPalette palette = lineEdit->palette();
+    const bool currentValueValid =
+        currentValue >= initialFromValue_ && currentValue <= initialToValue_;
+    const QColor currentBackgroundColor {palette.color(lineEdit->backgroundRole())};
+    if (currentValueValid && currentBackgroundColor == altBackgroundColor_)
+    {
+        palette.setColor(lineEdit->backgroundRole(), defaultBackgroundColor_);
+        lineEdit->setPalette(palette);
+    }
 
-    for (QWidget* current : widgets)
-        current->setVisible(checked);
+    if (!currentValueValid && currentBackgroundColor == defaultBackgroundColor_)
+    {
+        palette.setColor(lineEdit->backgroundRole(), altBackgroundColor_);
+        lineEdit->setPalette(palette);
+    }
 }
