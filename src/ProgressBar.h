@@ -12,12 +12,18 @@
 #include "wble_global.h"
 
 /**
- * @brief Round progress bar to show progress. If max != 0 '%' are used.
+ * @class ProgressBar
+ * @brief Round progress bar to visualize task progress.
  */
 class WBLE_EXPORT ProgressBar : public QWidget
 {
     Q_OBJECT
 public:
+    /**
+     * Constructor of ProgressBar class.
+     * @param title Title to be shown.
+     * @param parent Parent widget.
+     */
     explicit ProgressBar(QString title, QWidget* parent = nullptr);
 
     ~ProgressBar() override = default;
@@ -32,9 +38,12 @@ public:
 
     virtual void stop();
 
-    void restart();
+    virtual void reset();
 
     bool isRunning();
+
+    /// Without parent, draw progress bar as seperate frameless window.
+    void showDetached();
 
 protected:
     void paintEvent(QPaintEvent* event) override;
@@ -46,30 +55,47 @@ protected:
     static constexpr int QUARTER_CIRCLE_ANGLE {90};
     static constexpr int HALF_CIRCLE_ANGLE {2 * QUARTER_CIRCLE_ANGLE};
 
-    virtual void paintProgress(QPainter& painter) = 0;
+    /**
+     * Paint graphically progress bar arc.
+     * @param painter Painter which should be used.
+     */
+    virtual void paintProgressBar(QPainter& painter) = 0;
 
-    ///Area of round display.
     QRect arcRectangle_;
 
 private:
+    void initSizes();
+    void initPen();
+    void initCounterFont();
+    void initTitleFont();
+    void initArcRectangle();
+    void initTitleRectangle();
+
     void paintTitle(QPainter& painter);
 
     const QString title_;
 
-    ///Font used to display %.
+    /// Font used to display percent.
     QFont counterFont_;
 
-    ///Font used do draw title.
+    /// Font used do draw title.
     QFont titleFont_;
 
-    ///Title area.
+    /// Title area.
     QRect titleRectangle_;
 
     QPen pen_;
 
-    QBrush brush_;
+    const QColor color_;
+
+    const QBrush brush_;
 
     static constexpr int LINE_WIDTH {10};
+    static constexpr int TITLE_HEIGHT {LINE_WIDTH * 3};
+    static constexpr int DEFAULT_WIDTH {120};
+    static constexpr int DEFAULT_HEIGHT {140};
+    static constexpr double COUNTER_FONT_FACTOR {2.5};
+    static constexpr double TITLE_FONT_FACTOR {1.5};
 
     bool running_ {false};
 };

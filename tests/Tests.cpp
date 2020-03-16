@@ -1,10 +1,12 @@
-#include <QtTest/QtTest>
+#include <QTest>
 
 #include "DoubleSliderTest.h"
 #include "FilterDatesTest.h"
 #include "FilterDoublesTest.h"
 #include "FilterIntegersTest.h"
 #include "FilterStringsTest.h"
+#include "ProgressBarCounterTest.h"
+#include "ProgressBarInfiniteTest.h"
 
 int main(int argc, char* argv[])
 {
@@ -24,6 +26,12 @@ int main(int argc, char* argv[])
 
     FilterDoublesTest filterDoublesTest;
     QTest::qExec(&filterDoublesTest);
+
+    ProgressBarCounterTest progressBarCounterTest;
+    QTest::qExec(&progressBarCounterTest);
+
+    ProgressBarInfiniteTest progressBarInfiniteTest;
+    QTest::qExec(&progressBarInfiniteTest);
 
     return 0;
 }

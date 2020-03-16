@@ -3,7 +3,7 @@
 #include <limits>
 
 ProgressBarInfinite::ProgressBarInfinite(QString title, QWidget* parent) :
-    ProgressBar(title, parent)
+    ProgressBar(std::move(title), parent)
 {
 }
 
@@ -20,7 +20,13 @@ void ProgressBarInfinite::stop()
     ProgressBar::stop();
 }
 
-void ProgressBarInfinite::paintProgress(QPainter& painter)
+void ProgressBarInfinite::reset()
+{
+    progressCounter_ = 0;
+    ProgressBar::reset();
+}
+
+void ProgressBarInfinite::paintProgressBar(QPainter& painter)
 {
     constexpr int step {45};
     int startAngle =

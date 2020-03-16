@@ -3,19 +3,21 @@
 #include <QCheckBox>
 #include <QListWidget>
 #include <QSignalSpy>
-#include <QtTest/QtTest>
 #include <QTest>
 
 #include "FilterStrings.h"
 
 void FilterStringsTest::initTestCase()
 {
-    testEntriesList_ = QStringList{"a", "b", "c", "d"};
+    testEntriesList_ = QStringList{QLatin1String("a"),
+                                   QLatin1String("b"),
+                                   QLatin1String("c"),
+                                   QLatin1String("d")};
 }
 
 void FilterStringsTest::testToggling()
 {
-    FilterStrings filter(" ", testEntriesList_);
+    FilterStrings filter(QLatin1String(""), testEntriesList_);
     auto listWidget = filter.findChild<QListWidget*>();
     auto selectAll = filter.findChild<QCheckBox*>();
     QCOMPARE(listWidget->isEnabled(), true);
@@ -28,7 +30,7 @@ void FilterStringsTest::testToggling()
 
 void FilterStringsTest::testSelectAllToggling()
 {
-    FilterStrings filter(" ", testEntriesList_);
+    FilterStrings filter(QLatin1String(""), testEntriesList_);
     QSignalSpy spy(&filter, &FilterStrings::newStringFilter);
 
     auto selectAll = filter.findChild<QCheckBox*>();
@@ -43,15 +45,15 @@ void FilterStringsTest::testSelectAllToggling()
 
 void FilterStringsTest::testListItemChecking()
 {
-    FilterStrings filter(" ", testEntriesList_);
+    FilterStrings filter(QLatin1String(""), testEntriesList_);
     QSignalSpy spy(&filter, &FilterStrings::newStringFilter);
     const auto listWidget = filter.findChild<QListWidget*>();
-    const auto item = listWidget->item(testEntriesList_.indexOf("b"));
+    const auto item = listWidget->item(testEntriesList_.indexOf(QStringLiteral("b")));
     const QRect itemRect = listWidget->visualItemRect(item);
     QTest::mouseClick(listWidget->viewport(), Qt::LeftButton, Qt::NoModifier, itemRect.center());
 
     QCOMPARE(spy.count(), SIGNAL_RECEIVED);
-    QCOMPARE(spy.takeFirst(), {"b"});
+    QCOMPARE(spy.takeFirst(), {QLatin1String("b")});
     QCOMPARE(spy.count(), NO_SIGNAL);
 
     QApplication::processEvents();

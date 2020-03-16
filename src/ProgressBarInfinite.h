@@ -3,17 +3,29 @@
 
 #include "ProgressBar.h"
 
+/**
+ * @class ProgressBarInfinite
+ * @brief Round progress showing two arcs moving infinitely.
+ */
 class WBLE_EXPORT ProgressBarInfinite : public ProgressBar
 {
+    Q_OBJECT
 public:
+    /**
+     * Constructor of ProgressBarCounter class.
+     * @param title Title to be shown.
+     * @param parent Parent widget.
+     */
     ProgressBarInfinite(QString title, QWidget* parent = nullptr);
 
     void start() override;
 
     void stop() override;
 
+    void reset() override;
+
 protected:
-    void paintProgress(QPainter& painter) override;
+    void paintProgressBar(QPainter& painter) override;
 
     void timerEvent(QTimerEvent* event) override;
 

@@ -1,14 +1,13 @@
 #include "DoubleSliderTest.h"
 
 #include <QSignalSpy>
-#include <QtTest/QtTest>
 #include <QTest>
 
 #include "DoubleSlider.h"
 
 void DoubleSliderTest::initTestCase()
 {
-    qApp->setStyleSheet("QSlider::handle:horizontal {width: 10px}");
+    qApp->setStyleSheet(QStringLiteral("QSlider::handle:horizontal {width: 10px}"));
 }
 
 void DoubleSliderTest::testSettingCurrentValues()
@@ -19,13 +18,15 @@ void DoubleSliderTest::testSettingCurrentValues()
     QCOMPARE(slider.getCurrentMin(), MIN);
     QCOMPARE(slider.getCurrentMax(), MAX);
 
-    slider.setCurrentMin(MIN / 2);
+    const double newMin {MIN / 2.};
+    slider.setCurrentMin(newMin);
     QCOMPARE(slider.getMin(), MIN);
-    QCOMPARE(slider.getCurrentMin(), MIN / 2);
+    QCOMPARE(slider.getCurrentMin(), newMin);
 
-    slider.setCurrentMax(MAX / 2);
+    const double newMax {MAX / 2.};
+    slider.setCurrentMax(newMax);
     QCOMPARE(slider.getMax(), MAX);
-    QCOMPARE(slider.getCurrentMax(), MAX / 2);
+    QCOMPARE(slider.getCurrentMax(), newMax);
 }
 
 void DoubleSliderTest::testEmittingCurrentMinChanged()
@@ -35,7 +36,8 @@ void DoubleSliderTest::testEmittingCurrentMinChanged()
     QSignalSpy spyMin(&slider, &DoubleSlider::currentMinChanged);
     QSignalSpy spyMax(&slider, &DoubleSlider::currentMaxChanged);
 
-    slider.setCurrentMin(MIN / 2);
+    const double newMin {MIN / 2.};
+    slider.setCurrentMin(newMin);
     QCOMPARE(spyMin.count(), NO_SIGNAL);
     QCOMPARE(spyMax.count(), NO_SIGNAL);
 }

@@ -6,8 +6,8 @@
 #include <QDebug>
 #include <QIntValidator>
 
-#include "ui_FilterNumbers.h"
 #include "Utilities.h"
+#include "ui_FilterNumbers.h"
 
 FilterNumbers::FilterNumbers(const QString& name,
                              double from,
@@ -147,7 +147,7 @@ void FilterNumbers::toEditingFinished()
 
 void FilterNumbers::lineEditContentModified(const QString& currentContent)
 {
-    auto lineEdit = dynamic_cast<QLineEdit*>(sender());
+    auto lineEdit = qobject_cast<QLineEdit*>(sender());
     const double currentValue = QLocale::system().toDouble(currentContent);
     QPalette palette = lineEdit->palette();
     const bool currentValueValid =

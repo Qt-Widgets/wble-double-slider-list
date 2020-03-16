@@ -4,9 +4,9 @@
  + numeric filters (integer and double one)
  + string filter
  + date filter  
-
-**Work is in progress.**
- 
+ + infinity progress bar
+ + counter progress bar
+  
 # Building
 Clone and use Cmake directly or via QtCreator. Cmake **should**:
 + configure everything automatically,
@@ -27,7 +27,7 @@ Alternatively tests subproject can be checked. Usage also can be found in my oth
 ![Alt text](DoubleSlider.png?raw=true "Double slider")  
 Each handle can be moved independently. Check also Integer and Double filters which are wrapping double slider into handy adjustable widgets.  
 ## Filters
-Each filter widget inherits from `QGroupBox`. It means all filters can be checkable or not. Use standard `setCheckable(true)` to make it checkable.
+Each filter widget inherits from `QGroupBox`. It means all filters can be checkable or not. Use standard `setCheckable()` to alter behavior.
 ### Integer filter
 ![Alt text](IntegerFilter.png?raw=true "Integer filter not checkable")  
 Wrapped double slider into adjustable widget. Dedicated for integer values.
@@ -40,3 +40,11 @@ Widget allowing to pick custom date range. Additional "Ignore data with empty da
 ### String filter
 ![Alt text](StringFilter.png?raw=true "String filter not checkable")  
 Widget allowing to pick multiple string values as filtered set. Additional checkbox "Select/Unselect all" for quick unchecking / checking all string values in filter.
+## Progress bars
+Widgets capable of showing progress of longer tasks. Can be used as a blend in widget or modal one. 
+### Infinity progress bar
+![Alt text](InfinityProgressBar.png?raw=true "String filter not checkable")  
+Can be used for tasks with unknown end time. Progress bar displays moving arcs until it is stopped or destroyed.
+### Counter progress bar
+![Alt text](CounterProgressBar.png?raw=true "String filter not checkable")  
+Can be used for tasks with known end time. Progress bar displays arc which is moving from 0 towards 100 percent. In the middle current percent is displayed.

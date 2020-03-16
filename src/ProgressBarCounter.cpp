@@ -3,34 +3,31 @@
 ProgressBarCounter::ProgressBarCounter(QString title,
                                        int maxValue,
                                        QWidget* parent) :
-    ProgressBar(title, parent),
+    ProgressBar(std::move(title), parent),
     maxValue_(maxValue)
 {
 }
 
-void ProgressBarCounter::stop()
+void ProgressBarCounter::reset()
 {
     currentPercent_ = 0;
-    ProgressBar::stop();
-}
-
-int ProgressBarCounter::getCurrentPercent()
-{
-    return currentPercent_;
+    ProgressBar::reset();
 }
 
 void ProgressBarCounter::updateProgress(int newValue)
 {
-    const int newPercent = lround(newValue * 1.0 / maxValue_ * 100);
-    if (newPercent <= currentPercent_)
-        return;
+    if (!isRunning())
+        start();
+
+    const int newPercent =
+        std::lround(static_cast<double>(newValue) / maxValue_ * 100.0);
 
     currentPercent_ = newPercent;
     update();
     QApplication::processEvents();
 }
 
-void ProgressBarCounter::paintProgress(QPainter& painter)
+void ProgressBarCounter::paintProgressBar(QPainter& painter)
 {
     constexpr int startAngle {QUARTER_CIRCLE_ANGLE * FULL_DEGREE};
     const int spanAngle =

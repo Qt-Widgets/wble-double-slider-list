@@ -14,6 +14,12 @@ set(${PROJECT_NAME}_SOURCES
     FilterDoublesTest.h
     FilterNumbersCommon.cpp
     FilterNumbersCommon.h
+    ProgressBarCounterTest.cpp
+    ProgressBarCounterTest.h
+    ProgressBarCommon.cpp
+    ProgressBarCommon.h
+    ProgressBarInfiniteTest.cpp
+    ProgressBarInfiniteTest.h
     )
 
 add_executable(tests ${${PROJECT_NAME}_SOURCES})
